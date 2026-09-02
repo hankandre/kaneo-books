@@ -15,6 +15,17 @@ const taskSchema = z.object({
   description: z.string().nullable().optional(),
   url: z.string().optional(),
 });
+const taskProjectSchema = z.object({
+  columns: z.array(z.object({ tasks: z.array(taskSchema).default([]) })).default([]),
+  archivedTasks: z.array(taskSchema).default([]),
+  plannedTasks: z.array(taskSchema).default([]),
+});
+const paginationSchema = z.object({
+  page: z.number(),
+  totalPages: z.number(),
+  pageSize: z.number().optional(),
+  total: z.number().optional(),
+});
 const uploadSchema = z.object({
   key: z.string(),
   uploadUrl: z.string(),
@@ -94,8 +105,34 @@ export class KaneoClient {
   }
 
   async listTasks(projectId: string): Promise<KaneoTask[]> {
-    const result = unwrap(await this.request<unknown>(`/task/tasks/${encodeURIComponent(projectId)}`));
-    return z.array(taskSchema).parse(result);
+    const tasks = new Map<string, KaneoTask>();
+    let page = 1;
+    let totalPages = 1;
+    do {
+      const query = page === 1 ? "" : `?page=${page}&limit=100`;
+      const response = await this.request<unknown>(`/task/tasks/${encodeURIComponent(projectId)}${query}`);
+      if (Array.isArray(response)) {
+        for (const task of z.array(taskSchema).parse(response)) tasks.set(task.id, task);
+        break;
+      }
+
+      const envelope = z
+        .object({ data: z.union([z.array(taskSchema), taskProjectSchema]), pagination: paginationSchema.optional() })
+        .parse(response);
+      if (Array.isArray(envelope.data)) {
+        for (const task of envelope.data) tasks.set(task.id, task);
+      } else {
+        const nested = [
+          ...envelope.data.columns.flatMap((column) => column.tasks),
+          ...envelope.data.archivedTasks,
+          ...envelope.data.plannedTasks,
+        ];
+        for (const task of nested) tasks.set(task.id, task);
+      }
+      totalPages = envelope.pagination?.totalPages ?? 1;
+      page += 1;
+    } while (page <= totalPages);
+    return [...tasks.values()];
   }
 
   async createTask(projectId: string, input: { title: string; description: string; status: string }): Promise<KaneoTask> {

@@ -96,7 +96,12 @@ describe("provider contracts", () => {
       new Response(`
         <html><body>
           <span id="productTitle">Amazon Book</span>
-          <div id="bylineInfo"><span class="author"><a>Amazon Author (Author)</a></span></div>
+          <div id="bylineInfo">
+            <span class="author notFaded"><a>Amazon Author</a> (Author)</span>
+            <span class="author notFaded"><a>Audio Narrator</a> (Narrator)</span>
+            <span class="author notFaded"><a>Book Publisher</a> (Publisher)</span>
+            <span class="more"><a class="showMoreLink">&amp; 0 more</a></span>
+          </div>
           <div id="bookDescription_feature_div">A description.</div>
           <img id="landingImage" src="https://images.test/amazon.jpg" />
           <div id="detailBullets_feature_div"><li>Language: English</li><li>Print length: 320 pages</li></div>

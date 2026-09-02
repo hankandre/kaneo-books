@@ -271,7 +271,7 @@ async function doctor(): Promise<void> {
 const program = new Command()
   .name("kaneo-books")
   .description("Import book metadata into Kaneo from ISBNs and ASINs")
-  .version("0.1.0")
+  .version("0.1.1")
   .showSuggestionAfterError();
 
 function addImportOptions(command: Command): Command {

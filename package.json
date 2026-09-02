@@ -1,6 +1,6 @@
 {
   "name": "kaneo-books",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Import book metadata into Kaneo from ISBNs and ASINs",
   "type": "module",
   "bin": {

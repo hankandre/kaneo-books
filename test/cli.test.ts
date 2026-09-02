@@ -21,7 +21,7 @@ async function run(args: string[], env: Record<string, string> = {}): Promise<{ 
 
 describe("CLI contract", () => {
   test("reports version and help successfully", async () => {
-    expect(await run(["--version"])).toMatchObject({ exitCode: 0, stdout: "0.1.0\n", stderr: "" });
+    expect(await run(["--version"])).toMatchObject({ exitCode: 0, stdout: "0.1.1\n", stderr: "" });
     const help = await run(["--help"]);
     expect(help.exitCode).toBe(0);
     expect(help.stdout).toContain("import [options] [identifiers...]");

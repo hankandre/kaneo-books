@@ -102,9 +102,12 @@ export class AmazonProvider implements MetadataProvider {
 
     const title = cleanText($("#productTitle").text());
     const authors = new Set<string>();
-    $("#bylineInfo .author a, #bylineInfo a.a-link-normal, .contributorNameID").each((_index, node) => {
-      const author = cleanText($(node).text().replace(/\((?:Author|Editor|Translator).*?\)/gi, ""));
-      if (author && !/visit the|follow/i.test(author)) authors.add(author);
+    $("#bylineInfo .author").each((_index, node) => {
+      const byline = cleanText($(node).text());
+      const roles = [...(byline?.matchAll(/\(([^)]+)\)/g) ?? [])].map((match) => match[1]!.toLowerCase());
+      if (roles.length > 0 && !roles.some((role) => /\bauthor\b/.test(role))) return;
+      const author = cleanText($(node).find("a").first().text());
+      if (author && !/visit the|follow|more$/i.test(author)) authors.add(author);
     });
     const image =
       parseDynamicImage($("#imgBlkFront").attr("data-a-dynamic-image")) ??

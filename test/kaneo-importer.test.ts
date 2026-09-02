@@ -102,4 +102,36 @@ describe("Kaneo import integration", () => {
       "POST https://kaneo.test/api/task/image-upload/t1/finalize",
     ]);
   });
+
+  test("flattens and paginates the current nested Kaneo task response", async () => {
+    const calls: string[] = [];
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const url = String(input);
+      calls.push(url);
+      if (url.endsWith("/task/tasks/p1")) {
+        return json({
+          data: {
+            columns: [{ tasks: [{ id: "active", description: "active" }] }],
+            archivedTasks: [{ id: "archived", description: "archived" }],
+            plannedTasks: [],
+          },
+          pagination: { total: 3, page: 1, pageSize: 2, totalPages: 2 },
+        });
+      }
+      if (url.endsWith("/task/tasks/p1?page=2&limit=100")) {
+        return json({
+          data: {
+            columns: [{ tasks: [{ id: "second-page", description: "second" }] }],
+            archivedTasks: [],
+            plannedTasks: [],
+          },
+          pagination: { total: 3, page: 2, pageSize: 2, totalPages: 2 },
+        });
+      }
+      throw new Error(`Unexpected request ${url}`);
+    }) as unknown as typeof fetch;
+    const tasks = await new KaneoClient("https://kaneo.test/api", "token").listTasks("p1");
+    expect(tasks.map((task) => task.id)).toEqual(["active", "archived", "second-page"]);
+    expect(calls).toHaveLength(2);
+  });
 });
